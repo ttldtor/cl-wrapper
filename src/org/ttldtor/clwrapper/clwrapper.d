@@ -20,7 +20,6 @@ enum STORE_ORIG_CL_PATH_PARAM = "--store";
 enum ENV_DEFAULT_ORIG_CL_PATH_FILENAME = "CW_DEFAULT_ORIG_CL_PATH_FILENAME";
 enum DEFAULT_ORIG_CL_PATH = "orig_cl_path.txt";
 
-
 void storeOriginalClPath(string origClPathFilename) {
     //enum whichCl = `powershell.exe -Command "Get-Command cl.exe | Select-Object -ExpandProperty Source"`;
     enum whichCl = `cmd /c where cl.exe`;
@@ -88,10 +87,10 @@ int main(string[] args) {
 
 } else {
 
-    int main() {
-        "Non windows".error;
+int main() {
+    "Non windows".error;
 
-        return 1;
-    }
+    return 1;
+}
 
 }
