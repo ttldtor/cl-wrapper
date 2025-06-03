@@ -17,3 +17,4 @@ cl-wrapper-test-*
 bin/
 .vs/
 .idea/
+orig_cl_path.txt

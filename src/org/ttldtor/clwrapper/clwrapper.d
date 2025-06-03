@@ -9,6 +9,9 @@ import std.string;
 import std.file;
 import std.algorithm;
 import std.logger.core;
+import std.array;
+import std.typecons;
+import std.conv;
 
 void toTextFile(string data, string fileName) {
     std.algorithm.mutation.copy(data, File(fileName, "w").lockingTextWriter);
@@ -17,8 +20,43 @@ void toTextFile(string data, string fileName) {
 version (Windows) {
 
 enum STORE_ORIG_CL_PATH_PARAM = "--store";
-enum ENV_DEFAULT_ORIG_CL_PATH_FILENAME = "CW_DEFAULT_ORIG_CL_PATH_FILENAME";
+
+enum ENV_DEFAULT_ORIG_CL_PATH_FILENAME = "CLWRPR_DEFAULT_ORIG_CL_PATH_FILENAME";
 enum DEFAULT_ORIG_CL_PATH = "orig_cl_path.txt";
+
+enum ENV_STRATEGIES = "CLWRPR_STRATEGIES";
+
+interface Strategy {
+    string getName() const;
+    string[] apply(const string[] args) const;
+}
+
+class MdToMtStrategy : Strategy {
+    string getName() const {
+        return "MT2MD";
+    }
+
+    string[] apply(const string[] args) const {
+        //TODO: implement
+
+        return args.dup;
+    }
+};
+
+class NoneStrategy : Strategy {
+    string getName() const {
+        return "None";
+    }
+
+    string[] apply(const string[] args) const {
+        return args.dup;
+    }
+};
+
+static const STRATEGIES = [ new MdToMtStrategy(), new NoneStrategy() ]
+    .to!(Strategy[])
+    .map!(s => tuple(s.getName(), s))
+    .assocArray;
 
 void storeOriginalClPath(string origClPathFilename) {
     //enum whichCl = `powershell.exe -Command "Get-Command cl.exe | Select-Object -ExpandProperty Source"`;
@@ -58,6 +96,8 @@ auto runCl(scope const(char[])[] args) {
 
 int main(string[] args) {
     import std.uni;
+
+    infof("Available strategies: %s", STRATEGIES);
  
     string origClPathFilename = environment.get(ENV_DEFAULT_ORIG_CL_PATH_FILENAME, DEFAULT_ORIG_CL_PATH);
 
@@ -73,7 +113,28 @@ int main(string[] args) {
 
     if (pathToOrigCl.length > 0) {
         if (args.length > 1) {
-            return ([pathToOrigCl] ~ args[1 .. $]).runCl;
+            auto strategyNamesToApply = environment.get(ENV_STRATEGIES, new NoneStrategy().getName).split(",");
+            auto argsCopy = args[1 .. $].dup;
+
+            infof("Strategies to apply: %s", strategyNamesToApply);
+
+            if (strategyNamesToApply.length > 0) {
+                foreach (name; strategyNamesToApply) {
+                    auto s = name in STRATEGIES;
+                    infof("Args: %s", argsCopy);
+                    infof("Strategy: %s", name);
+
+                    if (s !is null) {
+                        argsCopy = (*s).apply(argsCopy);
+                    }
+
+                    infof("Args: %s", argsCopy);
+                }
+            } else {
+                infof("Args: %s", argsCopy);
+            }           
+
+            return (pathToOrigCl ~ argsCopy).runCl;
         } else {
             return [pathToOrigCl].runCl;
         }
