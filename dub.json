@@ -1,0 +1,26 @@
+{
+  "authors": [
+    "ttldtor"
+  ],
+  "copyright": "Copyright (c) 2025, ttldtor",
+  "description": "Minimal MS Compiler's wrapper",
+  "license": "BSL-1.0",
+  "targetType": "executable",
+  "name": "cl-wrapper",
+  "mainSourceFile": "src/org/ttldtor/clwrapper/clwrapper.d",
+  "targetPath": "bin/",
+  "buildTypes": {
+    "debug": {
+      "buildOptions": [ "debugMode", "debugInfo" ]
+    },
+    "release": {
+      "buildOptions": [ "releaseMode", "optimize", "inline" ]
+    },
+    "release-debug": {
+      "buildOptions": [ "releaseMode", "optimize", "inline", "debugInfo" ]
+    },
+    "release-nobounds": {
+      "buildOptions": [ "releaseMode", "optimize", "inline", "noBoundsCheck" ]
+    }
+  }
+}
