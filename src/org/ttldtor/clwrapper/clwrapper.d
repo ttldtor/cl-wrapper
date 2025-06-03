@@ -89,7 +89,7 @@ int main(string[] args) {
 } else {
 
     int main() {
-        writlen("[ERROR] Non windows");
+        "Non windows".error;
 
         return 1;
     }
