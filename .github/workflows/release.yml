@@ -1,3 +1,6 @@
+# Copyright (c) 2025 ttldtor.
+# SPDX-License-Identifier: BSL-1.0
+
 name: Release on tag
 
 on:
@@ -24,10 +27,8 @@ jobs:
         dub build -b release-nobounds
 
     - name: Create GitHub Release
-      uses: softprops/action-gh-release@v4
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ github.ref_name }}
         name: Release ${{ github.ref_name }}
         files: bin\*.exe
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

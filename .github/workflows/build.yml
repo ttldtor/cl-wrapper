@@ -1,3 +1,6 @@
+# Copyright (c) 2025 ttldtor.
+# SPDX-License-Identifier: BSL-1.0
+
 name: Build
 
 on:
@@ -22,4 +25,3 @@ jobs:
       run: |
         # Build the project, with its main file included, without unittests
         dub build -b release-nobounds
-
