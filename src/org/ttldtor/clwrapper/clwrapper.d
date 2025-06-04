@@ -96,7 +96,7 @@ string loadOriginalClPath(string origClPathFilename) {
         return origClPathFilename.readText;
     }
 
-    return "";
+    return "cl.exe";
 }
 
 auto runCl(scope const(char[])[] args) {
