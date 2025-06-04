@@ -12,6 +12,7 @@ import std.logger.core;
 import std.array;
 import std.typecons;
 import std.conv;
+import std.regex;
 
 void toTextFile(string data, string fileName) {
     std.algorithm.mutation.copy(data, File(fileName, "w").lockingTextWriter);
@@ -33,13 +34,29 @@ interface Strategy {
 
 class MdToMtStrategy : Strategy {
     string getName() const {
-        return "MT2MD";
+        return "MD2MT";
     }
 
     string[] apply(const string[] args) const {
-        //TODO: implement
+        if (args.length == 0) {
+            return [];
+        }
 
-        return args.dup;
+        string[] result;
+
+        foreach (arg; args) {
+            string fixedArg = arg;
+
+            if (arg.match(r"^/MDd?$")) {
+                fixedArg = arg.replace("/MD", "/MT");
+            } else if (arg.match(r"(?i)^/NODEFAULTLIB:libcmt(?:\.lib)?$")) {
+                continue;
+            }
+
+            result ~= fixedArg;
+        }
+
+        return result.dup;
     }
 };
 
