@@ -3,13 +3,13 @@
 **cl-wrapper** is a wrapper around `cl.exe` (the Microsoft Visual C++ compiler), allowing you to apply a set of strategies to its arguments before execution.
 It's useful for automating builds, modifying compiler flags (e.g., replacing `/MD` with `/MT`), and filtering problematic arguments when using tools like GraalVM `native-image`.
 
-> 🪪 License: BSL-1.0  
-> 🪟 Platform: Windows only  
-> 🧠 Language: [D Programming Language](https://dlang.org/)
+> License: BSL-1.0  
+> Platform: Windows only  
+> Language: [D Programming Language](https://dlang.org/)
 
 ---
 
-## 📦 Features
+## Features
 
 - Intercepts and modifies compiler arguments
 - Automatically replaces `/MD` → `/MT`
@@ -18,7 +18,7 @@ It's useful for automating builds, modifying compiler flags (e.g., replacing `/M
 
 ---
 
-## ⚙️ Usage
+## Usage
 
 ### 1. Store the original `cl.exe` path
 
@@ -62,7 +62,7 @@ If no stored path is found, `cl-wrapper` will default to using `cl.exe` from the
 
 ---
 
-## 🧪 Example: MD2MT strategy
+## Example: MD2MT strategy
 
 Transforms:
 
@@ -75,7 +75,7 @@ Transforms:
 
 ---
 
-## 🧰 Environment Variables
+## Environment Variables
 
 | Variable                               | Description                                                 |
 | -------------------------------------- | ----------------------------------------------------------- |
@@ -85,12 +85,12 @@ Transforms:
 
 ---
 
-## 💡 Use Case: GraalVM native-image
+## Use Case: GraalVM native-image
 
 This tool is especially useful when GraalVM `native-image` builds native binaries using `cl.exe` and you want to customize or override compiler behavior — e.g., forcing static linking via `/MT`.
 
 ---
 
-## 📜 License
+## License
 
 Licensed under the [Boost Software License 1.0 (BSL-1.0)](https://chatgpt.com/c/LICENSE.txt).
