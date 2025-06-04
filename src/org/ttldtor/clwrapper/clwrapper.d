@@ -79,10 +79,10 @@ void storeOriginalClPath(string origClPathFilename) {
     //enum whichCl = `powershell.exe -Command "Get-Command cl.exe | Select-Object -ExpandProperty Source"`;
     enum whichCl = `cmd /c where cl.exe`;
 
-    auto result = whichCl.executeShell;
+    auto result = whichCl.executeShell();
 
     if (result.status == 0) {
-        auto originalClPath = result.output.strip;
+        auto originalClPath = result.output.strip();
 
         infof("The original cl.exe path: '%s'", originalClPath);
         originalClPath.toTextFile(origClPathFilename);
@@ -93,19 +93,21 @@ void storeOriginalClPath(string origClPathFilename) {
 
 string loadOriginalClPath(string origClPathFilename) {
     if (origClPathFilename.exists) {
-        return origClPathFilename.readText;
+        return origClPathFilename.readText();
     }
 
     return "cl.exe";
 }
 
+alias originalClPath = loadOriginalClPath;
+
 auto runCl(scope const(char[])[] args) {
-    auto cl = args.execute;
+    auto cl = args.execute();
 
     if (cl.status != 0) {
         error("Compilation failed:\n", cl.output);
     } else {
-        cl.output.writeln;
+        cl.output.writeln();
     }
 
     return cl.status;    
@@ -121,12 +123,12 @@ int main(string[] args) {
     infof("The original cl.exe path filename: '%s'", origClPathFilename);
 
     if (args.length > 1 && args[1].icmp(STORE_ORIG_CL_PATH_PARAM) == 0) {
-        storeOriginalClPath(origClPathFilename);
+        origClPathFilename.storeOriginalClPath();
 
         return 0;
     }
 
-    string pathToOrigCl = origClPathFilename.loadOriginalClPath;
+    string pathToOrigCl = origClPathFilename.originalClPath;
 
     if (pathToOrigCl.length > 0) {
         if (args.length > 1) {
@@ -151,9 +153,9 @@ int main(string[] args) {
                 infof("Args: %s", argsCopy);
             }           
 
-            return (pathToOrigCl ~ argsCopy).runCl;
+            return (pathToOrigCl ~ argsCopy).runCl();
         } else {
-            return [pathToOrigCl].runCl;
+            return [pathToOrigCl].runCl();
         }
     }
 
