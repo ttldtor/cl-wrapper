@@ -68,7 +68,7 @@ Transforms:
 
 ```
 /MD     → /MT
-/MDd    → /MT
+/MDd    → /MTd
 /NODEFAULTLIB:libcmt.lib → removed
 /NODEFAULTLIB:libcmt     → removed
 ```
