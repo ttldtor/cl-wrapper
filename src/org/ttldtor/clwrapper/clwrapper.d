@@ -75,6 +75,31 @@ static const STRATEGIES = [ new MdToMtStrategy(), new NoneStrategy() ]
     .map!(s => tuple(s.getName(), s))
     .assocArray;
 
+string[] applyStrategies(const string[] strategyNamesToApply, const string[] args) {
+    auto argsCopy = args.dup;
+
+    infof("Strategies to apply: %s", strategyNamesToApply);
+
+    if (strategyNamesToApply.length > 0) {
+        foreach (name; strategyNamesToApply) {
+            infof("Args: %s", argsCopy);
+            infof("Strategy: %s", name);
+
+            auto s = name in STRATEGIES;
+
+            if (s !is null) {
+                argsCopy = (*s).apply(argsCopy);
+            }
+
+            infof("Args: %s", argsCopy);
+        }
+    } else {
+        infof("Args: %s", argsCopy);
+    }
+
+    return argsCopy.dup;
+}
+
 void storeOriginalClPath(string origClPathFilename) {
     //enum whichCl = `powershell.exe -Command "Get-Command cl.exe | Select-Object -ExpandProperty Source"`;
     enum whichCl = `cmd /c where cl.exe`;
@@ -107,7 +132,7 @@ auto runCl(scope const(char[])[] args) {
     if (cl.status != 0) {
         error("Compilation failed:\n", cl.output);
     } else {
-        cl.output.writeln();
+        cl.output.info();
     }
 
     return cl.status;    
@@ -133,27 +158,9 @@ int main(string[] args) {
     if (pathToOrigCl.length > 0) {
         if (args.length > 1) {
             auto strategyNamesToApply = environment.get(ENV_STRATEGIES, new NoneStrategy().getName).split(",");
-            auto argsCopy = args[1 .. $].dup;
+            auto processedArgs = strategyNamesToApply.applyStrategies(args[1 .. $].dup);
 
-            infof("Strategies to apply: %s", strategyNamesToApply);
-
-            if (strategyNamesToApply.length > 0) {
-                foreach (name; strategyNamesToApply) {
-                    auto s = name in STRATEGIES;
-                    infof("Args: %s", argsCopy);
-                    infof("Strategy: %s", name);
-
-                    if (s !is null) {
-                        argsCopy = (*s).apply(argsCopy);
-                    }
-
-                    infof("Args: %s", argsCopy);
-                }
-            } else {
-                infof("Args: %s", argsCopy);
-            }           
-
-            return (pathToOrigCl ~ argsCopy).runCl();
+            return (pathToOrigCl ~ processedArgs).runCl();
         } else {
             return [pathToOrigCl].runCl();
         }
