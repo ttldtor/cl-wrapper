@@ -26,6 +26,8 @@ enum ENV_DEFAULT_ORIG_CL_PATH_FILENAME = "CLWRPR_DEFAULT_ORIG_CL_PATH_FILENAME";
 enum DEFAULT_ORIG_CL_PATH = "orig_cl_path.txt";
 
 enum ENV_STRATEGIES = "CLWRPR_STRATEGIES";
+enum ENV_MD2MT_STRATEGY_ADD_NODEFAULTLIB = "CLWRPR_MD2MT_STRATEGY_ADD_NODEFAULTLIB";
+enum ENV_MD2MT_STRATEGY_ADD_DEFAULTLIB = "CLWRPR_MD2MT_STRATEGY_ADD_DEFAULTLIB";
 
 interface Strategy {
     string getName() const;
@@ -44,12 +46,53 @@ class MdToMtStrategy : Strategy {
 
         string[] result;
 
+        enum noDefaultLibs = [
+            "msvcrt",
+            "msvcrtd",
+            "msvcp",
+            "msvcpd",
+            "vcruntime",
+            "vcruntime140",
+            "vcruntime140_1",
+            "ucrt",
+            "ucrtd",
+            "ucrtbase",
+            "api-ms-win-crt-convert-l1-1-0",
+            "api-ms-win-crt-environment-l1-1-0",
+            "api-ms-win-crt-filesystem-l1-1-0",
+            "api-ms-win-crt-heap-l1-1-0",
+            "api-ms-win-crt-runtime-l1-1-0",
+            "api-ms-win-crt-stdio-l1-1-0",
+            "api-ms-win-crt-string-l1-1-0"
+        ];
+
+        string[] additionalNoDefaultLibs = environment.get(ENV_MD2MT_STRATEGY_ADD_NODEFAULTLIB, "").split(",");
+        string[] additionalDefaultLibs = environment.get(ENV_MD2MT_STRATEGY_ADD_DEFAULTLIB, "").split(",");
+
+        bool noDefaultAndDefaultLibsWereAdded = false;
+
         foreach (arg; args) {
             string fixedArg = arg;
 
             if (arg.match(r"^/MDd?$")) {
                 fixedArg = arg.replace("/MD", "/MT");
             } else if (arg.match(r"(?i)^/NODEFAULTLIB:libcmt(?:\.lib)?$")) {
+                if (!noDefaultAndDefaultLibsWereAdded) {
+                    foreach (lib; noDefaultLibs) {
+                        result ~= "/NODEFAULTLIB:" ~ lib ~ ".lib";
+                    }
+
+                    foreach (lib; additionalNoDefaultLibs) {
+                        result ~= "/NODEFAULTLIB:" ~ lib ~ ".lib";
+                    }
+
+                    foreach (lib; additionalDefaultLibs) {
+                        result ~= "/DEFAULTLIB:" ~ lib ~ ".lib";
+                    }
+
+                    noDefaultAndDefaultLibsWereAdded = true;
+                }
+
                 continue;
             }
 
