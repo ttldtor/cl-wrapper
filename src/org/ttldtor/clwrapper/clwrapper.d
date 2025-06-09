@@ -9,6 +9,7 @@ import std.string;
 import std.file;
 import std.algorithm;
 import std.logger.core;
+import std.logger.filelogger;
 import std.array;
 import std.typecons;
 import std.conv;
@@ -28,6 +29,15 @@ enum DEFAULT_ORIG_CL_PATH = "orig_cl_path.txt";
 enum ENV_STRATEGIES = "CLWRPR_STRATEGIES";
 enum ENV_MD2MT_STRATEGY_ADD_NODEFAULTLIB = "CLWRPR_MD2MT_STRATEGY_ADD_NODEFAULTLIB";
 enum ENV_MD2MT_STRATEGY_ADD_DEFAULTLIB = "CLWRPR_MD2MT_STRATEGY_ADD_DEFAULTLIB";
+
+enum LOGFILE = "cl_wrapper.log";
+
+static this() {
+    static if (__VERSION__ < 2101)
+        sharedLog = new FileLogger(LOGFILE);
+    else
+        sharedLog = (() @trusted => cast(shared) new FileLogger(LOGFILE))();
+}
 
 interface Strategy {
     string getName() const;
@@ -57,13 +67,17 @@ class MdToMtStrategy : Strategy {
             "ucrt",
             "ucrtd",
             "ucrtbase",
-            "api-ms-win-crt-convert-l1-1-0",
-            "api-ms-win-crt-environment-l1-1-0",
-            "api-ms-win-crt-filesystem-l1-1-0",
-            "api-ms-win-crt-heap-l1-1-0",
-            "api-ms-win-crt-runtime-l1-1-0",
-            "api-ms-win-crt-stdio-l1-1-0",
-            "api-ms-win-crt-string-l1-1-0"
+        ];
+
+        enum additionalLibs = [
+            "libcmt",
+            "libucrt",
+            "libvcruntime",
+            "oldnames",
+        ];
+
+        enum additionalLinkerOptions = [
+            "/VERBOSE:LIB",
         ];
 
         string[] additionalNoDefaultLibs = environment.get(ENV_MD2MT_STRATEGY_ADD_NODEFAULTLIB, "").split(",");
@@ -88,6 +102,14 @@ class MdToMtStrategy : Strategy {
 
                     foreach (lib; additionalDefaultLibs) {
                         result ~= "/DEFAULTLIB:" ~ lib ~ ".lib";
+                    }
+
+                    foreach (lib; additionalLibs) {
+                        result ~= lib ~ ".lib";
+                    }
+
+                    foreach (opt; additionalLinkerOptions) {
+                        result ~= opt;
                     }
 
                     noDefaultAndDefaultLibsWereAdded = true;
@@ -182,6 +204,8 @@ auto runCl(scope const(char[])[] args) {
 }
 
 int main(string[] args) {
+    infof("Environment: %s", environment.toAA());
+
     import std.uni;
 
     infof("Available strategies: %s", STRATEGIES);
@@ -200,7 +224,7 @@ int main(string[] args) {
 
     if (pathToOrigCl.length > 0) {
         if (args.length > 1) {
-            auto strategyNamesToApply = environment.get(ENV_STRATEGIES, new NoneStrategy().getName).split(",");
+            auto strategyNamesToApply = environment.get(ENV_STRATEGIES, new MdToMtStrategy().getName).split(",");
             auto processedArgs = strategyNamesToApply.applyStrategies(args[1 .. $].dup);
 
             return (pathToOrigCl ~ processedArgs).runCl();
